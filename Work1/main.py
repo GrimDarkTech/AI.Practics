@@ -1,46 +1,79 @@
-#Подключаем библиотеки
-import tensorflow as tf
-from tensorflow import keras
-import numpy as np
-import time
+"""@package docstring
+Documentation for this module.
+More details.
+"""
+import matplotlib.pyplot as plot
+import matplotlib
+import os
+matplotlib.use('TkAgg')
 
-#train
-train_input = np.random.random(size=(1000, 10))
+filename = "inputTest_AINC2023.txt" 
+dataT = []
+dataY = []
+extMaxesIndexes = [0]
+extMinsIndexes = [0]
 
-train_output = np.argmin(train_input, axis=1)/10
+#reads data from file
+def reading():
+    """reads data from file"""
+    f = open(filename,'r')
+    lines = f.readlines()
+    lines.pop(0)
+    for line in lines:
+        a = line.strip().split(',  ')
+        a[0] = float(a[0])
+        a[1] = float(a[1])
+        dataT.append(a[0])
+        dataY.append(a[1])
+    f.close()
 
-model = keras.Sequential([
-    keras.layers.Dense(10, input_shape=(10,)),
-    keras.layers.Dense(10, activation=tf.nn.relu),
-    keras.layers.Dense(5, activation=tf.nn.relu),
-    keras.layers.Dense(1),
-])
+#serachs extremums values
+def extremumsSearch():
+    """serachs extremums values"""
+    if(dataY[0]>=dataY[1]):
+        extMaxesIndexes.append(0)
+    else:
+        extMinsIndexes.append(0)
+    
+    if(dataY[len(dataY) - 1]>=dataY[len(dataY) - 2]):
+        extMaxesIndexes.append(len(dataY) - 1)
+    else:
+        extMinsIndexes.append(len(dataY) - 1)
+    
+    for i in range(1, len(dataY) - 1):
+        if(dataY[i] >= dataY[i+1] and dataY[i] >= dataY[i-1]):
+            extMaxesIndexes.append(i)
+        elif (dataY[i] <= dataY[i+1] and dataY[i] <= dataY[i-1]):
+            extMinsIndexes.append(i)
 
-model.compile(optimizer=tf.keras.optimizers.Adam(), 
-              loss='mean_absolute_error',
-              metrics=['accuracy'])
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    """Press the green button in the gutter to run the script"""
+    reading()
+    extremumsSearch()
 
-model.fit(train_input, train_output, epochs=10)
+    print('-----------Максимумы------------------')
+    for i in extMaxesIndexes:
+        print(dataY[i])
 
-#test
-test_input = np.random.random(size=(500, 10))
+    print()
+    print('--------------------------------------')
+
+    print('-----------Минимумы-----------------')
+    for i in extMinsIndexes:
+        print(dataY[i])
+
+    print()
+    print('------------------------------------')
 
 
-test_output = np.argmin(test_input, axis=1)
+    print("Количество максимумов")
+    print(len(extMaxesIndexes))
+    print("Количество минимумов")
+    print(len(extMinsIndexes))
+ 
 
-
-test_loss, test_acc = model.evaluate(test_input, test_output)
-print('Test accuracy:', test_acc)
-
-for i in range(0, 10):
-    X_new = np.random.rand(1, 10)  # Новый массив из 10 элементов
-    prediction = model.predict(X_new)
-    print("\n\n ABBOBA ", X_new, " fact: ", np.argmin(X_new))
-    print("Предсказанное минимальное значение:", prediction[0, 0] * 10)
-
-t1 = time.time()
-for i in range(1000000):
-    val  = np.argmin(np.random.rand(1, 10))
-print(time.time() - t1, "ms")
-
-input()
+    plot.plot(dataT, dataY, '-b', markevery=extMinsIndexes, marker=8, markerfacecolor='green', markeredgecolor='green')
+    plot.plot(dataT, dataY, '-b', markevery=extMaxesIndexes, marker=8, markerfacecolor='red', markeredgecolor='red')
+    plot.show()
+    input("Нажмите Enter для выхода")

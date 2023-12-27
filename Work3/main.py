@@ -1,33 +1,46 @@
 #Подключаем библиотеки
+import tensorflow as tf
+from tensorflow import keras
 import numpy as np
-import cv2
 import time
 
-def gaussian_blur(image, kernel_size, sigma):
-    # Создание Гауссова ядра
-    kernel = np.fromfunction(lambda x, y: (1/(2*np.pi*sigma**2)) * np.exp(-((x-(kernel_size[0]//2))**2 + (y-(kernel_size[1]//2))**2)/(2*sigma**2)), kernel_size)
+#train
+train_input = np.random.random(size=(1000, 10))
 
-    # Нормализация ядра
-    kernel = kernel / np.sum(kernel)
+train_output = np.argmin(train_input, axis=1)/10
 
-    # Применение размытия
-    blurred_image = np.zeros_like(image, dtype=np.float32)
-    for i in range(3):  # Проход по каждому каналу изображения (RGB)
-        blurred_image[:,:,i] = np.convolve(image[:,:,i].flatten(), kernel.flatten(), mode='same').reshape(image.shape[:2])
+model = keras.Sequential([
+    keras.layers.Dense(10, input_shape=(10,)),
+    keras.layers.Dense(10, activation=tf.nn.relu),
+    keras.layers.Dense(5, activation=tf.nn.relu),
+    keras.layers.Dense(1),
+])
 
-    return blurred_image.astype(np.uint8)
+model.compile(optimizer=tf.keras.optimizers.Adam(), 
+              loss='mean_absolute_error',
+              metrics=['accuracy'])
 
-# Пример использования
+model.fit(train_input, train_output, epochs=10)
+
+#test
+test_input = np.random.random(size=(500, 10))
+
+
+test_output = np.argmin(test_input, axis=1)
+
+
+test_loss, test_acc = model.evaluate(test_input, test_output)
+print('Test accuracy:', test_acc)
+
+for i in range(0, 10):
+    X_new = np.random.rand(1, 10)  # Новый массив из 10 элементов
+    prediction = model.predict(X_new)
+    print("\n\n ABBOBA ", X_new, " fact: ", np.argmin(X_new))
+    print("Предсказанное минимальное значение:", prediction[0, 0] * 10)
+
 t1 = time.time()
-image = cv2.imread('input.jpg')
-blurred_image = gaussian_blur(image, (5, 5), 1.5)
-print("Custom time: ",time.time() - t1, "sec")
-t2 = time.time()
-cv_image = cv2.GaussianBlur(image, (5, 5), 1.5)
-print("OpenCV time: ",time.time() - t2, "sec")
-cv2.imshow('Original Image', image)
-cv2.imshow('Blurred Image', blurred_image)
-cv2.imshow("CV Image", cv_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+for i in range(1000000):
+    val  = np.argmin(np.random.rand(1, 10))
+print(time.time() - t1, "ms")
 
+input()
